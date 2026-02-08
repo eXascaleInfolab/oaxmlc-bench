@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: fastxml
+Version: 2.0.0
+Summary: FastXML Extreme Multi-label Classification Algorithm
+Home-page: https://github.com/refefer/fastxml
+Author: Andrew Stanton
+Author-email: refefer@gmail.com
+License: LICENSE
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Operating System :: OS Independent
+License-File: LICENSE
+Requires-Dist: numpy>=1.8.1
+Requires-Dist: scipy>=0.13.3
+Requires-Dist: scikit-learn>=0.17
+Requires-Dist: Cython>=0.23.4
+Requires-Dist: future>=0.16.0
