@@ -20,6 +20,9 @@ For these reasons, we introduce **OAXMLC**, a comprehensive benchmark designed t
 
 To achieve this, we produced two new large XMLC datasets, each featuring two distinct sets of labels and taxonomies. By benchmarking a wide range of recent XMLC methods (both taxonomy-aware and taxonomy-agnostic), we analyze how tasks, datasets, and taxonomic properties impact model performance.
 
+A comprehensive collection of metrics and detailed experimental results is available at:  
+https://exascaleinfolab.github.io/oaxmlc-bench/
+
 ## Introduction
 This framework allows benchmarking of the main state-of-the-art XMLC methods on classic XMLC datasets (MAG-CS, EURLex, ...) as well as multi-taxonomy datasets (OAXMLC, OAMED-XMLC), using both taxonomy-aware and taxonomy-agnostic algorithms.
 
