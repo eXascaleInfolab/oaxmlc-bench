@@ -152,6 +152,7 @@
     /* Text blocks */
     .intro, .datasets, .metrics, .methods, .ref {
       max-width: 920px;
+      margin: 0 auto;
       line-height: 1.6;
       color: var(--text);
     }
@@ -161,7 +162,7 @@
 
     .toc {
       max-width: 920px;
-      margin: 18px 0 18px;
+      margin: 18px auto 18px;
       padding: 14px 14px;
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -200,7 +201,14 @@
       margin: 10px 0 22px;
     }
 
-    .section { margin: 26px 0 10px; }
+    .section {
+      max-width: 920px;
+      margin: 26px auto 10px;
+    }
+    #tables.section {
+      max-width: none;
+      margin: 26px 0 10px;
+    }
     .section > h2 {
       color: var(--text);
       font-size: 26px;
@@ -240,6 +248,9 @@
       letter-spacing: .08em;
       z-index: 2;
     }
+    tbody tr td {
+      background: var(--panel);
+    }
     tbody tr:nth-child(even) td {
       background: color-mix(in srgb, var(--panel) 70%, var(--bg));
     }
@@ -251,8 +262,11 @@
     td:first-child, th:first-child {
       position: sticky;
       left: 0;
-      background: inherit;
+      background: var(--panel);
       z-index: 3;
+    }
+    tbody tr:nth-child(even) td:first-child {
+      background: color-mix(in srgb, var(--panel) 70%, var(--bg));
     }
     th:first-child { z-index: 4; }
 
