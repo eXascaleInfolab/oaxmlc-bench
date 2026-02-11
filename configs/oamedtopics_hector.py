@@ -31,8 +31,8 @@ cfg = {
     # Method to used to sample support and query sets
     # ['standard', 'min_including']
     'sampling_strategy': 'standard',
-    "batch_size_train":64,
-    "batch_size_eval":128,
+    "batch_size_train":256,
+    "batch_size_eval":256,
     # Only used in maml, number of optimization steps per task
     'n_optim_steps': 5,
     # k to evaluate in the metrics for the final evaluation

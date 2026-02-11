@@ -121,3 +121,21 @@ class CustomPrecisionLoss:
             precision[k] = prec
 
         return precision, tot_mass
+
+
+def quick_precision_at_1(x, y, level_mask):
+    """
+    Compute precision@1
+    :param x: model predictions (batch_size x |label_vocab|)
+    :param y: true labels (batch_size x |real_labels|)
+    """
+    with torch.no_grad():
+        x_mask= x*level_mask
+        _, ranks_sorted = torch.sort(x, dim=1, descending=True)
+        best_preds = ranks_sorted[:,0:1]
+        matches = 0
+        for i in range(len(y)):
+            matches += (best_preds[i] in y[i])
+        return  matches
+
+        

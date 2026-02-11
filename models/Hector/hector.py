@@ -7,7 +7,7 @@ from models.Hector.optimizer import rate, DenseSparseAdam, GradientClipper, arat
 import torch
 from torch.optim.lr_scheduler import ExponentialLR
 
-from models.Hector.loss import MLabelSmoothing, SimpleLossCompute, CustomPrecisionLoss
+from models.Hector.loss import MLabelSmoothing, SimpleLossCompute, CustomPrecisionLoss, quick_precision_at_1
 import models.Hector.config as Cf
 
 
@@ -19,7 +19,7 @@ import models.Hector.config as Cf
 
 class Hector() : 
 
-    def __init__(self, src_vocab, tgt_vocab, path_to_glove, abstract_dict, taxonomies, 
+    def __init__(self, src_vocab, tgt_vocab, abstract_dict, taxonomies, 
                  device  = torch.device('cpu'),
                  #adaptive_patience,
                  Number_src_blocs = 6, Number_tgt_blocs = 6, dim_src_embedding = 300,
@@ -70,7 +70,7 @@ class Hector() :
         print("Initializing embeddings")
 
         if not Cf.QUICK_DEBUG :
-            emb_src_init, emb_tgt_init = build_init_embedding(path_to_glove, vocab_src=src_vocab, vocab_tgt=tgt_vocab,
+            emb_src_init, emb_tgt_init = build_init_embedding( vocab_src=src_vocab, vocab_tgt=tgt_vocab,
                                                            d_src=dim_src_embedding,
                                                            d_tgt=dim_tgt_embedding, abstract_dict=abstract_dict)
         
@@ -187,27 +187,12 @@ class Hector() :
 
         If the document has no valid paths (e.g., only the root), return [].
         """
-        # Clean labels: cast to int, drop PAD
-        labs = [int(l) for l in labels if int(l) != int(self._pad_tgt)]
-        if not labs:
-            return []
 
-        tree = self.tree
+        labs = [int(l) for l in labels]
+        labs = [l for l in labs if l!= self._pad_tgt]
+        output = self.tree.labels_to_paths(labs)
 
-        # Try building raw paths from the tree; if none, skip this doc
-        try:
-            output = tree.labels_to_paths(labs)  # List[(path, children, mask_level)]
-        except AssertionError:
-            # Optional concise debug
-            try:
-                if getattr(Cf, "QUICK_DEBUG", False):
-                    print(f"[Hector] labels_to_paths empty |  root={tree.root} labs={labs[:20]}")
-            except NameError:
-                pass
-            return []
 
-        if not output:
-            return []
 
         # Convert to plain lists (ints for ids, floats for masks); no padding here
         processed_output = []
@@ -228,7 +213,7 @@ class Hector() :
 
 
 
-    def _prepare_batch(self, documents_tokens, paths_and_children ):  # 0 = <blank>
+    def _prepare_batch(self, documents_tokens, labels ):  # 0 = <blank>
         """
         :input documents_tokens : 2D tensor of shape (batch_size, max_padding_src) with document tokens ids
                     each row starts with 1 (<s> token id) and ends with 2 (</s> token id)
@@ -248,19 +233,15 @@ class Hector() :
         src, tgt, kinder, masks = [], [], [], []
 
         for index_document in range(len(documents_tokens)):
-            paths  = paths_and_children[index_document].get(str(GLOBAL_TASK_ID), [])
+            paths = self._prepare_all_paths(labels[index_document])
             if not paths:
                 # Skip this doc 
                 continue
             for (path,children,mask) in paths : 
                 
-                new_path = torch.LongTensor(path+([self._pad_tgt]*(self._max_level-len(path)))).unsqueeze(0)
-                new_children = torch.LongTensor(children+([self._pad_tgt]*(self._max_padding_tgt-len(children)))).unsqueeze(0)
-                new_mask_level = torch.FloatTensor(mask).unsqueeze(0)
-                tgt.append(new_path)
-                kinder.append(new_children)
-                
-                masks.append(new_mask_level)
+                tgt.append(path)
+                kinder.append(children)
+                masks.append(mask)
                 
             src.append( documents_tokens[index_document].repeat(len(paths),1) )
 
@@ -373,12 +354,20 @@ class Hector() :
 
 
 
+    def apply_loss(self):
 
-    
+        self._optimizer
+        
+        _ = self._clippy.clip_gradient(self._model)
+        self._optimizer.step()
+        self._optimizer.zero_grad(set_to_none=True)
+        self._lr_scheduler.step()
+        
+     
 
-    def train_on_batch(self, documents_tokens,  paths_and_children):
+    def train_on_batch(self, documents_tokens,  labels, train_batch_size = 1024):
 
-        out = self._prepare_batch(documents_tokens,  paths_and_children)
+        out = self._prepare_batch(documents_tokens,  labels)
         if out[0] is None:  # all documents skipped
             # Return a zero loss tensor on the correct device to keep loops simple
             return torch.tensor(0.0, device=self._model.device if hasattr(self._model, "device") else None)
@@ -397,15 +386,15 @@ class Hector() :
         if isinstance(device, str):
             device = torch.device(device)
 
-        for i in range(0,len(src),256):
+        for i in range(0,len(src),train_batch_size):
         
             
-            src_batch = src[i:i+256].to(device)
-            tgt_batch = tgt[i:i+256].to(device)
-            kinder_batch = kinder[i:i+256].to(device)
-            masks_batch = masks[i:i+256].to(device)
-            src_mask_batch = src_mask[i:i+256].to(device)
-            tgt_mask_batch = tgt_mask[i:i+256].to(device)
+            src_batch = src[i:i+train_batch_size].to(device)
+            tgt_batch = tgt[i:i+train_batch_size].to(device)
+            kinder_batch = kinder[i:i+train_batch_size].to(device)
+            masks_batch = masks[i:i+train_batch_size].to(device)
+            src_mask_batch = src_mask[i:i+train_batch_size].to(device)
+            tgt_mask_batch = tgt_mask[i:i+train_batch_size].to(device)
             ntokens_batch = ntokens.to(device)
                
         
@@ -418,10 +407,7 @@ class Hector() :
             
         self._training_steps += 1
         if self._training_steps % self._accum_iter == 0:
-            norm = self._clippy.clip_gradient(self._model)
-            self._optimizer.step()
-            self._optimizer.zero_grad(set_to_none=True)
-            self._lr_scheduler.step()
+            self.apply_loss()
         return loss.detach()
 
 
@@ -430,9 +416,9 @@ class Hector() :
 
 
 
-    def eval_batch(self, documents_tokens, paths_and_children):
+    def eval_batch(self, documents_tokens, labels, eval_batch_size = 1024):
 
-        out = self._prepare_batch(documents_tokens,  paths_and_children)
+        out = self._prepare_batch(documents_tokens,  labels)
         if out[0] is None:  # all documents skipped
             # Return a zero loss tensor on the correct device to keep loops simple
             return torch.tensor(0.0, device=self._model.device if hasattr(self._model, "device") else None)
@@ -453,17 +439,18 @@ class Hector() :
 
 
         total_loss = 0
+        total_prec = 0
 
 
-        for i in range(0,len(src),256):
+        for i in range(0,len(src),eval_batch_size):
         
             
-            src_batch = src[i:i+256].to(device)
-            tgt_batch = tgt[i:i+256].to(device)
-            kinder_batch = kinder[i:i+256].to(device)
-            masks_batch = masks[i:i+256].to(device)
-            src_mask_batch = src_mask[i:i+256].to(device)
-            tgt_mask_batch = tgt_mask[i:i+256].to(device)
+            src_batch = src[i:i+eval_batch_size].to(device)
+            tgt_batch = tgt[i:i+eval_batch_size].to(device)
+            kinder_batch = kinder[i:i+eval_batch_size].to(device)
+            masks_batch = masks[i:i+eval_batch_size].to(device)
+            src_mask_batch = src_mask[i:i+eval_batch_size].to(device)
+            tgt_mask_batch = tgt_mask[i:i+eval_batch_size].to(device)
             ntokens_batch = ntokens.to(device)
                
         
@@ -473,18 +460,21 @@ class Hector() :
             
 
             total_loss += loss.item()*len(src_batch)
+            prec = quick_precision_at_1(out, kinder_batch, masks_batch)
+            total_prec+= prec
 
             
 
             del src_batch, tgt_batch, kinder_batch, masks_batch, src_mask_batch, tgt_mask_batch, ntokens_batch, out
 
         loss = total_loss / len(src)
-        return loss
+        precision = total_prec / len(src)
+        return loss, precision
         
 
-    def completion_batch(self, documents_tokens, paths_and_children):
+    def completion_batch(self, documents_tokens, labels, eval_batch_size = 1024):
 
-        out = self._prepare_batch(documents_tokens,  paths_and_children)
+        out = self._prepare_batch(documents_tokens,  labels)
         if out[0] is None:  # all documents skipped
             # Return a zero loss tensor on the correct device to keep loops simple
             return torch.tensor(0.0, device=self._model.device if hasattr(self._model, "device") else None)
@@ -507,15 +497,15 @@ class Hector() :
         all_kinders = []
 
 
-        for i in range(0,len(src),256):
+        for i in range(0,len(src),eval_batch_size):
         
             
-            src_batch = src[i:i+256].to(device)
-            tgt_batch = tgt[i:i+256].to(device)
-            kinder_batch = kinder[i:i+256].to(device)
-            masks_batch = masks[i:i+256].to(device)
-            src_mask_batch = src_mask[i:i+256].to(device)
-            tgt_mask_batch = tgt_mask[i:i+256].to(device)
+            src_batch = src[i:i+eval_batch_size].to(device)
+            tgt_batch = tgt[i:i+eval_batch_size].to(device)
+            kinder_batch = kinder[i:i+eval_batch_size].to(device)
+            masks_batch = masks[i:i+eval_batch_size].to(device)
+            src_mask_batch = src_mask[i:i+eval_batch_size].to(device)
+            tgt_mask_batch = tgt_mask[i:i+eval_batch_size].to(device)
             ntokens_batch = ntokens.to(device)
                
         

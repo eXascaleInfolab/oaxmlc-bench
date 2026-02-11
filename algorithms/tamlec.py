@@ -108,7 +108,7 @@ class TamlecAlg(AbstractAlgorithm):
         self.model = Tamlec(
             src_vocab=src_vocab,
             tgt_vocab=trg_vocab,
-            path_to_glove=".vector_cache/glove.840B.300d.gensim",
+            #path_to_glove=".vector_cache/glove.840B.300d.gensim",
             abstract_dict=abstract_dict,
             taxonomies=taxos_tamlec,
             width_adaptive=width_adaptive,

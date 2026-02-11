@@ -4,6 +4,7 @@ import numpy as np
 import nltk
 from tqdm import tqdm
 import time
+import orjson
 
 from algorithms.base_algorithm import AbstractAlgorithm
 from models.Hector.hector import Hector
@@ -16,19 +17,36 @@ from misc.checkpointing import CheckpointManager
 
 from typing import  Dict, Iterable, Optional, Any
 
+
+def _free_cuda_model(m):
+    """Release CUDA resources held by a Tamlec model instance."""
+    # if your Tamlec stores an optimizer on self (e.g., self.optimizer),
+    # drop it explicitly to free its CUDA tensors
+    if hasattr(m, 'optimizer'):
+        m.optimizer = None
+    # move off GPU to decouple CUDA tensors
+    try:
+        m.to('cpu')
+    except Exception:
+        pass
+    # remove references and flush
+    del m
+    gc.collect()
+    torch.cuda.empty_cache()
+
 class HectorAlg(AbstractAlgorithm):
     """Hector algorithm wrapper with custom prediction handlers."""
     def __init__(
         self,  
         metrics_handler,
-        taxonomy,
         src_vocab,
         trg_vocab,
+        taxonomy,
         abstract_dict,
         taxos_hector,
         with_bias,
-        loss_smoothing,
         accum_iter,
+        loss_smoothing,
         seq_length,
         k_list_eval_perf,
         batch_size_eval,
@@ -44,7 +62,7 @@ class HectorAlg(AbstractAlgorithm):
         all_tasks_key: str = "", # Key used to store global (all-tasks
         selected_task: int = 0, # Task index to fine-tune if few-shot mode is enabled
         learning_rate: float = 5e-5, # Learning rate for the optimizer
-        device: str = 'cpu', # Device to use (cpu, cuda:0,
+        device: str = ' cpu', # Device to use (cpu, cuda:0,
         verbose=True,
         checkpoint_manager: Optional[CheckpointManager] = None,
         resume: bool = True,
@@ -90,7 +108,7 @@ class HectorAlg(AbstractAlgorithm):
         self.model = Hector(
             src_vocab=src_vocab,
             tgt_vocab=trg_vocab,
-            path_to_glove=".vector_cache/glove.840B.300d.gensim",
+            #path_to_glove=".vector_cache/glove.840B.300d.gensim",
             abstract_dict=abstract_dict,
             taxonomies=taxos_hector,
             with_bias=with_bias,
@@ -136,7 +154,7 @@ class HectorAlg(AbstractAlgorithm):
 
     def _attempt_resume(self):
         """Attempt to resume training from the latest checkpoint."""
-        recors = None
+        record = None
         if self.checkpoint_manager is not None:
             record = self.checkpoint_manager.latest() 
         if record is None:
@@ -239,10 +257,11 @@ class HectorAlg(AbstractAlgorithm):
 
         total_loss = 0.0
         total_docs = 0
+        total_precision = 0.0
         L = self.taxonomy.n_nodes
         loss_fn = self.loss_function
 
-        for input_data, labels, _, _ in val_loader:
+        for input_data, labels, _ in val_loader:
             # Predictions: [B, L] on model device
             preds = self.inference_eval(input_data)      # device-safe inside
             B = preds.size(0)
@@ -312,7 +331,7 @@ class HectorAlg(AbstractAlgorithm):
             for input_data, labs, _ in tqdm(dataloaders[f"global_{split}"], leave=False):
                 # Train on batch
                 # For hector always set task_id=0 as the whole taxonomy is taken into account
-                loss = self.model.train_on_batch(documents_tokens=input_data, paths_and_children=paths_and_children)
+                loss = self.model.train_on_batch(documents_tokens=input_data, labels=labs)
                 train_losses.append(loss.cpu().item())
                 n_docs_per_batch.append(len(input_data))
 

@@ -2,12 +2,12 @@ from torch.utils.data import DataLoader
 import json
 import torch
 from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
-from datahandler.datasets.global_datasets import GlobalDataset
-from datahandler.datasets.tasks_datasets import TasksDataset
+from datahandler.datasets import GlobalDataset
+from datahandler.datasets import TasksDataset
 from datahandler.samplers.tasks_sampler import SubtreeSampler
 from datahandler.samplers.global_sampler import collate_global_int_labels, collate_global_int_labels_hector_tamlec
 from datahandler.taxonomy import Taxonomy
-from datahandler.tree import Tree
+#from datahandler.tree import Tree
 from datahandler.embeddings import EmbeddingHandler
 from datahandler.utils import  preprocess_docs_and_taxonomy,\
                                     text_preprocessing, tokenization,\
@@ -253,7 +253,8 @@ class DataModuleBase:
             # Get the embeddings
             emb_handler = EmbeddingHandler(self.cfg)
             # special_embs=True includes a <PAD> and a <UNK> token
-            self.embeddings = emb_handler.get_glove_embeddings(vocabulary, special_embs=True)
+            #self.embeddings = emb_handler.get_glove_embeddings(vocabulary, special_embs=True)
+            self.embeddings = emb_handler.get_random_embeddings(vocabulary, special_embs=True)
             # Save data
             # Data for hector and tamlec
             torch.save(self.cfg['tamlec_params']['src_vocab'], self.cfg['paths']['src_vocab'])

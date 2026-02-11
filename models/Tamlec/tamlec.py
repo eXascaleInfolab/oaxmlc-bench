@@ -21,7 +21,7 @@ import numpy as np
 
 class Tamlec() : 
 
-    def __init__(self, src_vocab, tgt_vocab, path_to_glove, abstract_dict, taxonomies, 
+    def __init__(self, src_vocab, tgt_vocab, abstract_dict, taxonomies, 
                  width_adaptive = False, # new param, with true activate the width_adaptive loss
                  decoder_adaptative = 0, # new param, number of decoding layers that are adapted to the task. 0 for no additional adaptation
                  tasks_size = None, # new param, list of the size of the training set of each task, to adapt the loss. 
@@ -77,7 +77,7 @@ class Tamlec() :
         print("Initializing embeddings")
 
         if not Cf.QUICK_DEBUG :
-            emb_src_init, emb_tgt_init = build_init_embedding(path_to_glove, vocab_src=src_vocab, vocab_tgt=tgt_vocab,
+            emb_src_init, emb_tgt_init = build_init_embedding(vocab_src=src_vocab, vocab_tgt=tgt_vocab,
                                                            d_src=dim_src_embedding,
                                                            d_tgt=dim_tgt_embedding, abstract_dict=abstract_dict)
         

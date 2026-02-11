@@ -11,7 +11,7 @@ import nltk
 import numpy as np
 import pandas as pd
 import torch
-from gensim.models import KeyedVectors
+#from gensim.models import KeyedVectors
 
 
 import models.Hector.config as Cf
@@ -45,18 +45,16 @@ def _process_string(s):
     return " ".join(content_tokens)
 
 
-def build_embedding_src(d_src, vocab_src, w2v_model):
+def build_embedding_src(d_src, vocab_src):
     emb_src_size = d_src
     pad = vocab_src[Cf.padding_token]
 
-    assert w2v_model["the"].shape[0] == emb_src_size  # check that GloVe embedding size corresponds to emb_src_size
+    #assert w2v_model["the"].shape[0] == emb_src_size  # check that GloVe embedding size corresponds to emb_src_size
 
     emb_src_init = []
     for word in vocab_src.get_itos():
         if word == pad:
             emb = np.zeros(emb_src_size)
-        elif word in w2v_model:
-            emb = w2v_model[word]
         else:
             emb = np.random.uniform(-1.0, 1.0, emb_src_size)
         emb_src_init.append(emb)
@@ -81,7 +79,7 @@ def init_label_emb(w2v_model, text, emb_tgt_size):
     return label_emb
 
 
-def build_embedding_tgt(d_tgt, vocab_tgt, w2v_model,abstract_dict):
+def build_embedding_tgt(d_tgt, vocab_tgt,abstract_dict):
     """
     abstract dict must be {label : abstract}
     """
@@ -98,8 +96,6 @@ def build_embedding_tgt(d_tgt, vocab_tgt, w2v_model,abstract_dict):
     for label in vocab_tgt.get_itos():
         if label == pad:
             emb = np.zeros(emb_tgt_size)
-        elif label in label2text:
-            emb = init_label_emb(w2v_model, label2text[label], emb_tgt_size)
         else:
             emb = np.random.uniform(-1.0, 1.0, emb_tgt_size)
         emb_tgt_init.append(emb)
@@ -108,16 +104,14 @@ def build_embedding_tgt(d_tgt, vocab_tgt, w2v_model,abstract_dict):
     return emb_init
 
 
-def build_init_embedding(path_to_glove,vocab_src ,vocab_tgt, d_src, d_tgt, abstract_dict):
+def build_init_embedding(vocab_src ,vocab_tgt, d_src, d_tgt, abstract_dict):
     
-    print("Loading GloVe embeddings")
-    w2v_model = KeyedVectors.load(path_to_glove)
 
     print("Building embedding src")
-    emb_init_src = build_embedding_src(d_src, vocab_src, w2v_model)
+    emb_init_src = build_embedding_src(d_src, vocab_src)
 
     print("Building embedding tgt")
-    emb_init_label = build_embedding_tgt(d_tgt, vocab_tgt, w2v_model,abstract_dict)
+    emb_init_label = build_embedding_tgt(d_tgt, vocab_tgt,abstract_dict)
 
     return emb_init_src,emb_init_label
 
