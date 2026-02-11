@@ -75,6 +75,40 @@ class HecTree :
             if lvl in self._labels_per_level :
                 self._max_width_tree = max(self._max_width_tree,len(self._labels_per_level[lvl]))
 
+        self._prepare_all_paths()
+        
+        
+    def _prepare_all_paths(self) :
+        """
+        the list of labels must have been completed. Just the label ids are enough
+        """
+
+        label_to_paths = {
+            self.root : set([tuple([self.root])])
+        }
+        
+        pre_paths = [[self.root]]
+
+        
+        for level in range(1,self._max_level_tree+1):
+            post_paths = []
+            for path in pre_paths :
+                current_leaf = path[-1]
+                if current_leaf in self.children_dict :
+                    possible_children = self.children_dict[current_leaf]
+                    for node in possible_children :
+                        new_path = path+[node]
+                        old_set_paths = label_to_paths.get(node,set())
+                        old_set_paths.add( tuple(new_path) )
+                        label_to_paths[node] = old_set_paths
+                        post_paths.append(new_path)
+                        
+                            
+            pre_paths = post_paths
+
+        
+        self._label_to_paths = label_to_paths
+
 
     def get_max_level(self):
         return self._max_level_tree
@@ -89,38 +123,6 @@ class HecTree :
         
 
 
-    # def labels_to_paths(self,list_of_labels : list) :
-    #     """
-    #     the list of labels must have been completed. Just the label ids are enough
-    #     """
-
-    #     assert list_of_labels[0] == self.root
-
-    #     pre_paths = [[self.root]]
-    #     label_per_level = {}
-
-    #     for label in list_of_labels :
-    #         level  = self._label_to_level[label]
-    #         dlevel : list= label_per_level.get(level,[])
-    #         dlevel.append(label)
-    #         label_per_level[level] = dlevel
-
-    #     for level in label_per_level:
-    #         if level == 0 : continue
-    #         post_paths = []
-    #         for path in pre_paths :
-    #             was_used= False
-    #             for node in label_per_level[level] :
-    #                 current_leaf = path[-1]
-    #                 if node in self.children_dict[current_leaf]:
-    #                     was_used=True
-    #                     post_paths.append(path+[node])
-    #             if not was_used :
-    #                 post_paths.append(path)
-    #         pre_paths = post_paths 
-        
-    #     return post_paths
-    
     def labels_to_paths(self,list_of_labels : list) :
         """
         the list of labels must have been completed. Just the label ids are enough
@@ -128,44 +130,65 @@ class HecTree :
 
         assert self.root in list_of_labels
 
-        pre_paths = [[self.root]]
-        label_per_level = {}
-
-        output = []
-
+        output  = []
         for label in list_of_labels :
-            label = int(label)
-            level  = self._label_to_level[label]
-            dlevel : list= label_per_level.get(level,[])
-            dlevel.append(label)
-            label_per_level[level] = dlevel
-
-        max_level = max(label_per_level.keys())
-
-        for level in range((max_level)+1):
-            if level == 0 : continue
-            if level not in label_per_level : continue
-            post_paths = []
-            
-            mask = self.get_level_mask(level)
-            for path in pre_paths :
-                
-                children = []
-                for node in label_per_level[level] :
-                    current_leaf = path[-1]
-                    if current_leaf in self.children_dict :
-                        if node in self.children_dict[current_leaf]:
-                            post_paths.append(path+[node])
-                            children.append(node)
-                if len(children)>0 :
-                
-                    output.append( (path, children, mask))
-                    
-            pre_paths = post_paths 
+            paths = self._label_to_paths.get(label,set())
+            children = self.children_dict.get(label,[])
+            children = [c for c in children if c in list_of_labels]
+            if len(children)>0 :      
+                for path in paths :
+                    mask = self.get_level_mask(len(path))
+                    output.append( (list(path), children, mask) )
 
         #assert len(output)>0
         
         return output
+    
+    # def labels_to_paths(self,list_of_labels : list) :
+    #     """
+    #     the list of labels must have been completed. Just the label ids are enough
+    #     """
+
+    #     assert self.root in list_of_labels
+
+    #     pre_paths = [[self.root]]
+    #     label_per_level = {}
+
+    #     output = []
+
+    #     for label in list_of_labels :
+    #         label = int(label)
+    #         level  = self._label_to_level[label]
+    #         dlevel : list= label_per_level.get(level,[])
+    #         dlevel.append(label)
+    #         label_per_level[level] = dlevel
+
+    #     max_level = max(label_per_level.keys())
+
+    #     for level in range((max_level)+1):
+    #         if level == 0 : continue
+    #         if level not in label_per_level : continue
+    #         post_paths = []
+            
+    #         mask = self.get_level_mask(level)
+    #         for path in pre_paths :
+                
+    #             children = []
+    #             for node in label_per_level[level] :
+    #                 current_leaf = path[-1]
+    #                 if current_leaf in self.children_dict :
+    #                     if node in self.children_dict[current_leaf]:
+    #                         post_paths.append(path+[node])
+    #                         children.append(node)
+    #             if len(children)>0 :
+                
+    #                 output.append( (path, children, mask))
+                    
+    #         pre_paths = post_paths 
+
+        #assert len(output)>0
+        
+        #return output
 
 
     def get_children_mask(self, label):

@@ -53,7 +53,7 @@ class EncoderDecoder(nn.Module):
 
     def freeze(self):
         """
-        Not available for Tamlec
+        Not available for Hector
         """
         pass
       
