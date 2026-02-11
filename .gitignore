@@ -6,11 +6,10 @@
 **/.ruff_cache
 **/*.json
 **/*.jsonl
-misc/oaxmlc_scripts/**/*.txt
-misc/oaxmlc_scripts/**/*.md
-misc/oaxmlc_scripts/**/*.csv
-output/
-datasets/
-reports/
-logs/
+./misc/oaxmlc_scripts/**/*.txt
+./misc/oaxmlc_scripts/**/*.md
+./misc/oaxmlc_scripts/**/*.csv
+./output/
+./datasets/
+./logs/
 *.tex
