@@ -608,8 +608,6 @@ class TamlecAlg(AbstractAlgorithm):
         
     def finetune(self, dataloaders):
         """Fine-tune Tamlec on the selected task."""
-        assert self.epoch is not None, "The mdoel needs to be trained first"
-        assert self.fewshot_exp, "Model needs to be trained with fewshot_exp = True first and keep fewshot_exp = True"
         # 2. In few-shot experiment, fine-tune the task that has not been trained
         print(f"\n> Fine-tuning on task {self.selected_task}")
         self._current_stage = "finetune"
@@ -618,6 +616,8 @@ class TamlecAlg(AbstractAlgorithm):
             self._attempt_resume()
         else:
             self.load_model()
+        assert self.epoch is not None, "The mdoel needs to be trained first"
+        assert self.fewshot_exp, "Model needs to be trained with fewshot_exp = True first and keep fewshot_exp = True"
 
         training = True
         epoch_finetuning = self.epoch

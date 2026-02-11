@@ -58,5 +58,6 @@ def collate_global_int_labels_hector_tamlec(batched_input_data):
     return (
         input_data,
         labels,
-        column_indices
+        column_indices,
+        None
     )
