@@ -397,7 +397,7 @@ def eval_step(
         else:
             
             n_labels_full = algorithm.taxonomy.n_nodes
-            n_labels = n_labels_full - 1
+            n_labels = n_labels_full - 1 
             
                 
             global_acc = StreamingXMLMetrics(
@@ -426,7 +426,7 @@ def eval_step(
 
 
                 # Filter out root label
-                filtered_preds = preds_cpu[:, 1:]
+                filtered_preds = preds_cpu[:, 2:]
                 filtered_labels = labels_cpu[:, 1:]
                 global_acc.update(filtered_preds, filtered_labels)
 
