@@ -1,4 +1,4 @@
-name: xmlc1
+name: xmlc
 channels:
   - pytorch
   - nvidia
