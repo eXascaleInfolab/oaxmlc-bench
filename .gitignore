@@ -4,7 +4,6 @@
 **/*.pickle
 **/*.so
 **/.ruff_cache
-**/*.json
 **/*.jsonl
 ./misc/oaxmlc_scripts/**/*.txt
 ./misc/oaxmlc_scripts/**/*.md

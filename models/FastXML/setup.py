@@ -11,11 +11,16 @@ class build_ext(_build_ext):
     This class is necessary because numpy won't be installed at import time.
     """
     def finalize_options(self):
-        _build_ext.finalize_options(self)
-        # Prevent numpy from thinking it is still in its setup process:
-        __builtins__.__NUMPY_SETUP__ = False
-        import numpy
-        self.include_dirs.append(numpy.get_include())
+      super().finalize_options()
+
+      # Prevent numpy from thinking it is still in its setup process.
+      # Under PEP517 builds, __builtins__ can be a dict.
+      import builtins
+      builtins.__NUMPY_SETUP__ = False
+
+      import numpy
+      self.include_dirs.append(numpy.get_include())
+
 
 compile_args = ['-O3', '-std=c++11', '-stdlib=libc++', '-mmacosx-version-min=10.8'] if sys.platform == 'darwin' else ['-O3', '-std=c++11']
 

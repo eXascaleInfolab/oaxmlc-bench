@@ -58,7 +58,7 @@ FastXML requires Cython compilation:
 
 ```bash
 cd models/FastXML
-python setup.py develop
+python -m pip install -e . --no-build-isolation
 ```
 
 ### 3. Required External Dependencies

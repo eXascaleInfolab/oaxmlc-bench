@@ -492,7 +492,7 @@ def eval_step(
                 tqdm(
                     dataloaders[f"tasks_{split}"],
                     leave=False,
-                    desc=f"Evalutating model on {split} tasks",
+                    desc=f"Evaluating model on {split} tasks",
                 )
             ):
                 task_labels_full = []
@@ -603,7 +603,7 @@ def eval_step(
                 tqdm(
                     dataloaders[f"tasks_{split}"],
                     leave=False,
-                    desc=f"Evalutating model on {split} tasks",
+                    desc=f"Evaluating model on {split} tasks",
                 )
             ):
                 task_relevant_classes = torch.as_tensor(task_relevant_classes, dtype=torch.long)
