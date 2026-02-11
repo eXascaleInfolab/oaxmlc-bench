@@ -9,6 +9,6 @@
 ./misc/oaxmlc_scripts/**/*.md
 ./misc/oaxmlc_scripts/**/*.csv
 ./output/
-./datasets/
+./datasets/*
 ./logs/
 *.tex
