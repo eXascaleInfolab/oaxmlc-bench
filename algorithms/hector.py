@@ -294,7 +294,7 @@ class HectorAlg(AbstractAlgorithm):
         return total_loss / max(total_docs, 1)
     
 
-    def inference_eval_completion(self, input_data, paths_and_children):
+    def inference_eval_completion(self, input_data, labels):
         """
         This method is called when running the completion experiment, Hector will exploit the first level label to 
         infer the next labels in the taxonomy.
@@ -303,7 +303,7 @@ class HectorAlg(AbstractAlgorithm):
         :param paths_and_children: batch of paths corresponding to the documents provided in input_data
         """
         self.model.eval()
-        predictions, ground_truth = self.model.completion_batch(documents_tokens=input_data, paths_and_children=paths_and_children)
+        predictions, ground_truth = self.model.completion_batch(documents_tokens=input_data, labels=labels)
         return predictions, ground_truth
 
     

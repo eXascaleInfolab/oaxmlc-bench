@@ -148,12 +148,12 @@ class ParabelAlg(AbstractAlgorithm):
             )
             
         # Get the predictions
-        #with multiprocessing.Pool(processes=self.n_proc) as pool:
-        #    all_dict_preds = pool.starmap(self.model.predict, zip(sparse_input, len(sparse_input)*[self.search_width]))
-        all_dict_preds = []
-        for sample in tqdm(sparse_input, leave=False):
-            dict_pred = self.model.predict(sample, self.search_width)
-            all_dict_preds.append(dict_pred)
+        with multiprocessing.Pool(processes=self.n_proc) as pool:
+            all_dict_preds = pool.starmap(self.model.predict, zip(sparse_input, len(sparse_input)*[self.search_width]))
+        #all_dict_preds = []
+        #for sample in tqdm(sparse_input, leave=False):
+        #    dict_pred = self.model.predict(sample, self.search_width)
+        #    all_dict_preds.append(dict_pred)
         # Transform to one-hot encoding
         all_predictions = []
         for dict_pred in tqdm(all_dict_preds, leave=False):

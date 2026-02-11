@@ -438,7 +438,7 @@ class BaseAlg(AbstractAlgorithm):
         """
         Fine-tuning loop on a selected task.
         """
-        assert self.epoch is not None, "You need to train the model first"
+        
         print(f"\n> Fine-tuning on task {self.selected_task}")
         self._current_stage = "finetune"
 
@@ -446,6 +446,7 @@ class BaseAlg(AbstractAlgorithm):
             self._attempt_resume()
         else:
             self.load_model()
+        assert self.epoch is not None, "You need to train the model first"
         training = True
         epoch_finetuning = max(self._resume_epoch, self.epoch)
         split = 'train'

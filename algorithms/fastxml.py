@@ -86,7 +86,7 @@ class FastxmlAlg(AbstractAlgorithm):
         # Get all data at the same time
         sparse_input = []
         all_labels = []
-        for input_data, labels, _ in tqdm(dataloaders[f"global_{split}"], leave=False):
+        for input_data, labels, _, _ in tqdm(dataloaders[f"global_{split}"], leave=False):
             for sample_tensor, sample_label in zip(input_data, labels):
                 # Do not take <PAD> tokens in the average
                 doc_embedding = safe_doc_embedding(sample_tensor)
