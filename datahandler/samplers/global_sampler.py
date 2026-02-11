@@ -17,7 +17,7 @@ def collate_global_int_labels(batched_input_data):
     input_data = []
     labels = []
     column_indices = None
-    for sample_data, sample_labels, sample_column_indices, _ in batched_input_data:
+    for sample_data, sample_labels, sample_column_indices in batched_input_data:
         input_data.append(sample_data)
         labels.append(sample_labels)
         # It is always the same

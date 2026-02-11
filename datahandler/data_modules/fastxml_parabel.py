@@ -1,4 +1,4 @@
-from base import DataModuleBase
+from datahandler.data_modules.base import DataModuleBase
 from datahandler.datasets.global_datasets import GlobalDataset
 from datahandler.samplers.global_sampler import collate_global_int_labels
 from torch.utils.data import DataLoader

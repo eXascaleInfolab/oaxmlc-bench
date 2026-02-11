@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
-from datahandler.datasets import TasksDatasetHectorTamlec, ResampledTasksDataset
-from datahandler.datasets import GlobalDatasetHectorTamlec
+from datahandler.datasets.tasks_datasets import TasksDatasetHectorTamlec, ResampledTasksDataset
+from datahandler.datasets.global_datasets import GlobalDatasetHectorTamlec
 
 from datahandler.samplers.tasks_sampler import SubtreeSampler
 from datahandler.samplers.global_sampler import collate_global_int_labels_hector_tamlec

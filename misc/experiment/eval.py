@@ -426,7 +426,7 @@ def eval_step(
 
 
                 # Filter out root label
-                filtered_preds = preds_cpu[:, 2:]
+                filtered_preds = preds_cpu[:, 1:]
                 filtered_labels = labels_cpu[:, 1:]
                 global_acc.update(filtered_preds, filtered_labels)
 

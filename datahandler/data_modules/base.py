@@ -2,8 +2,8 @@ from torch.utils.data import DataLoader
 import json
 import torch
 from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
-from datahandler.datasets import GlobalDataset
-from datahandler.datasets import TasksDataset
+from datahandler.datasets.global_datasets import GlobalDataset
+from datahandler.datasets.tasks_datasets import TasksDataset
 from datahandler.samplers.tasks_sampler import SubtreeSampler
 from datahandler.samplers.global_sampler import collate_global_int_labels, collate_global_int_labels_hector_tamlec
 from datahandler.taxonomy import Taxonomy

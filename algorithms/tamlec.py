@@ -373,7 +373,7 @@ class TamlecAlg(AbstractAlgorithm):
         
         # Aggregate predictions 
         all_predictions = torch.stack(all_predictions, dim=0).to(torch.float32).to(self.device) 
-        return all_predictions
+        return all_predictions[:,1:]
     
 
     def inference_eval_completion(self, input_data, labels, task_id):
