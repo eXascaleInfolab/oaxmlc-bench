@@ -77,7 +77,7 @@ def config_main(parser: argparse.ArgumentParser, cfg):
             exp.main_evaluate(splits=('validation','test'),save_preds={'test'})
         else:
             exp.main_evaluate(splits=(args.evaluate,), save_preds={args.evaluate})
-    if args.train or args.fewshot:
+    if args.train:
         print("> Running training")
         if cfg['method'] in ['dexa', 'ngame']:
             exp.main_train_dexa()

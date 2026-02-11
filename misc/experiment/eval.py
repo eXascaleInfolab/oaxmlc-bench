@@ -189,9 +189,9 @@ def eval_step_completion(exp, algorithm, dataloaders, split, verbose=False, save
 
     for batch in dataloaders[f"global_{split}"]:
         if len(batch) == 4:
-            input_data, _, column_indices, paths_and_children = batch
+            input_data, labels, column_indices, paths_and_children = batch
         else:
-            input_data, _, column_indices = batch
+            input_data, labels, column_indices = batch
             paths_and_children = None
         if relevant_idx is None:
             cols = column_indices
@@ -230,7 +230,7 @@ def eval_step_completion(exp, algorithm, dataloaders, split, verbose=False, save
 
         preds_list, gts_list = algorithm.inference_eval_completion(
             input_data=input_data,
-            paths_and_children=paths_and_children,
+            labels=labels,
         )
 
         preds_full = torch.stack([torch.as_tensor(p, device="cpu") for p in preds_list], 0).float()
@@ -408,7 +408,7 @@ def eval_step(
                 device="cpu",
             )
         
-            for batched_input, batched_labels, _ in tqdm(
+            for batched_input, batched_labels, _, _ in tqdm(
                 dataloaders[f"global_{split}"], leave=False, desc=f"Evaluating model on {split}"
             ):
                 preds = algorithm.inference_eval(batched_input, labels=batched_labels)

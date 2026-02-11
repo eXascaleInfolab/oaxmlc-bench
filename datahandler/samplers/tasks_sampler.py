@@ -81,7 +81,18 @@ class SubtreeSampler(Sampler):
     def __iter__(self):
         for subtree_idx in self.possible_subtrees:
             self.subtree_idx = subtree_idx
-            self.sampled_labels = self.dataset[subtree_idx][1].tolist()
+            labels_obj = self.dataset[subtree_idx][1]
+
+            if isinstance(labels_obj, list):
+                sampled_labels = labels_obj
+            elif hasattr(labels_obj, "tolist"):  # torch.Tensor, numpy array, etc.
+                sampled_labels = labels_obj.tolist()
+            else:
+                # last resort (e.g., tuple, set, custom)
+                sampled_labels = list(labels_obj)
+
+            self.sampled_labels = sampled_labels
+
 
             yield subtree_idx
 
