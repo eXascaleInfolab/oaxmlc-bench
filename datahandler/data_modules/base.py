@@ -253,8 +253,8 @@ class DataModuleBase:
             # Get the embeddings
             emb_handler = EmbeddingHandler(self.cfg)
             # special_embs=True includes a <PAD> and a <UNK> token
-            #self.embeddings = emb_handler.get_glove_embeddings(vocabulary, special_embs=True)
-            self.embeddings = emb_handler.get_random_embeddings(vocabulary, special_embs=True)
+            self.embeddings = emb_handler.get_glove_embeddings(vocabulary, special_embs=True)
+            #self.embeddings = emb_handler.get_random_embeddings(vocabulary, special_embs=True)
             # Save data
             # Data for hector and tamlec
             torch.save(self.cfg['tamlec_params']['src_vocab'], self.cfg['paths']['src_vocab'])
